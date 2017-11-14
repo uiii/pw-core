@@ -1,0 +1,25 @@
+{
+    "name": "uiii/pw-core",
+    "type": "composer-plugin",
+    "license": "MIT",
+    "description": "Installs Processwire CMS into project's root directory.",
+    "minimum-stability": "dev",
+    "keywords": ["processwire", "core", "installer"],
+    "authors": [
+        {
+            "name": "Richard Jedlička",
+            "email": "jedlicka.r@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "PW\\Composer\\": "src/"
+        }
+    },
+    "extra": {
+        "class": "PW\\Composer\\Plugin"
+    },
+    "require": {
+        "composer-plugin-api": "^1.1"
+    }
+}
