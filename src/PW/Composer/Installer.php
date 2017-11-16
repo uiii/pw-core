@@ -52,7 +52,7 @@ class Installer extends LibraryInstaller
 
 		$installPath = $this->getInstallPath($package);
 
-		if (! file_exists($installPath . '/site')) {
+		if (! file_exists($installPath . '/site/assets/installed.php')) {
 			// site profile not created - creating new PW project
 			// copy files needed for installation
 			foreach(glob($downloadPath . '/site-*') as $dir) {
