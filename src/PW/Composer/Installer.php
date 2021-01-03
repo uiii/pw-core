@@ -3,9 +3,7 @@ namespace PW\Composer;
 
 use Composer\Installer\LibraryInstaller;
 use Composer\Package\PackageInterface;
-use Composer\Package\Package;
 use Composer\Repository\InstalledRepositoryInterface;
-use Composer\Util\Filesystem;
 
 class Installer extends LibraryInstaller
 {
@@ -16,6 +14,11 @@ class Installer extends LibraryInstaller
 	{
 		// project's root
 		return '.';
+	}
+
+	public function getDownloadPath(PackageInterface $package)
+	{
+		return $this->getInstallPath($package) . '/.pw-core';
 	}
 
 	/**
@@ -48,23 +51,25 @@ class Installer extends LibraryInstaller
 	 */
 	public function installCode(PackageInterface $package)
 	{
-		$downloadPath = $this->download($package);
-
 		$installPath = $this->getInstallPath($package);
+		$downloadPath = $this->getDownloadPath($package);
+		$processwireDownloadPath = $downloadPath . "/processwire-{$package->getPrettyVersion()}";
+
+		$this->downloadProcesswire($package, $downloadPath);
 
 		if (! file_exists($installPath . '/site/assets/installed.php')) {
 			// site profile not created - creating new PW project
 			// copy files needed for installation
-			foreach(glob($downloadPath . '/site-*') as $dir) {
+			foreach(glob($processwireDownloadPath . '/site-*') as $dir) {
 				$this->copy($dir, $installPath . '/' . basename($dir), false);
 			}
 
-			$this->copy($downloadPath . '/install.php', $installPath . '/install.php', false);
+			$this->copy($processwireDownloadPath . '/install.php', $installPath . '/install.php', false);
 		}
 
-		$this->copy($downloadPath . '/wire', $installPath . '/wire', false);
-		$this->copy($downloadPath . '/index.php', $installPath . '/index.php');
-		$this->copy($downloadPath . '/htaccess.txt', $installPath . '/.htaccess');
+		$this->copy($processwireDownloadPath . '/wire', $installPath . '/wire', false);
+		$this->copy($processwireDownloadPath . '/index.php', $installPath . '/index.php');
+		$this->copy($processwireDownloadPath . '/htaccess.txt', $installPath . '/.htaccess');
 
 		$this->filesystem->remove($downloadPath);
 	}
@@ -74,7 +79,7 @@ class Installer extends LibraryInstaller
 	 */
 	public function updateCode(PackageInterface $initial, PackageInterface $target)
 	{
-		$this->installCode($target);
+		return $this->installCode($target);
 	}
 
 	/**
@@ -95,19 +100,21 @@ class Installer extends LibraryInstaller
 		$this->filesystem->rename($installPath . '/.htaccess', $installPath . '/.htaccess.bak');
 	}
 
-	private function download(PackageInterface $package) {
-		$downloadPath = $this->getInstallPath($package) . '/.pw-core';
-
+	private function downloadProcesswire(PackageInterface $package, $downloadPath) {
 		$archiveName = str_replace('dev-', '', $package->getPrettyVersion()) . '.zip';
 		$archiveUrl = "https://github.com/processwire/processwire/archive/{$archiveName}";
+		$archiveFile = $downloadPath . "/pw-{$package->getPrettyVersion()}.zip";
 
-		$pwPackage = new Package('processwire/processwire', $package->getVersion(), $package->getPrettyVersion());
-		$pwPackage->setDistType('zip');
-		$pwPackage->setDistUrl($archiveUrl);
+		$this->filesystem->ensureDirectoryExists($downloadPath);
+		$this->filesystem->copy($archiveUrl, $archiveFile);
 
-		$this->downloadManager->download($pwPackage, $downloadPath);
-
-		return $downloadPath;
+		$zip = new \ZipArchive;
+		if ($zip->open($archiveFile) === TRUE) {
+			$zip->extractTo($downloadPath);
+			$zip->close();
+		} else {
+			throw new \RuntimeException("Processwire download filed: Cannot opent zip archive.");
+		}
 	}
 
 	private function copy($source, $destination, $backupDestination = true) {
