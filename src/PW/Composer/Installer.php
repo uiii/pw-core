@@ -12,8 +12,13 @@ class Installer extends LibraryInstaller
 	 */
 	public function getInstallPath(PackageInterface $package)
 	{
-		// project's root
-		return '.';
+		$extra = $this->composer->getPackage()->getExtra();
+
+		if (isset($extra['pw-install-path'])) {
+			return $extra['pw-install-path'];
+		}
+
+		return '.'; // project's root
 	}
 
 	public function getDownloadPath(PackageInterface $package)
