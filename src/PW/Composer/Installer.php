@@ -58,7 +58,8 @@ class Installer extends LibraryInstaller
 	{
 		$installPath = $this->getInstallPath($package);
 		$downloadPath = $this->getDownloadPath($package);
-		$processwireDownloadPath = $downloadPath . "/processwire-{$package->getPrettyVersion()}";
+		$version = str_replace('dev-', '', $package->getPrettyVersion());
+		$processwireDownloadPath = $downloadPath . "/processwire-{$version}";
 
 		$this->downloadProcesswire($package, $downloadPath);
 
