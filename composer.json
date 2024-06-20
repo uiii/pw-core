@@ -1,5 +1,5 @@
 {
-    "name": "uiii/pw-core",
+    "name": "neuerituale/pw-core",
     "type": "composer-plugin",
     "license": "MIT",
     "description": "Installs Processwire CMS into project's root directory.",
